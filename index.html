@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Ledger" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#F1EFE6" />
+<title>Ledger — daily tracker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230F6E56'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23F1EFE6' font-family='Georgia,serif'%3EL%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230F6E56'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23F1EFE6' font-family='Georgia,serif'%3EL%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EFE6; --surface:#FFFFFF; --ink:#1C2420; --ink-soft:#5B655F;
+    --ink-faint:#96988E; --line:#DAD6C8; --accent:#0F6E56; --accent-soft:#DCEDE6;
+    --warm:#B8541E; --warm-soft:#F5E2D6; --danger:#B23A3A;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{padding-bottom:3rem;min-height:100vh;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 1.1rem;}
+  header{padding:2.2rem 0 1.4rem;}
+  .eyebrow{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);
+    font-weight:600;margin:0 0 6px;}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:32px;margin:0;line-height:1.1;
+    font-optical-sizing:auto;}
+  .datestr{color:var(--ink-soft);font-size:14px;margin:8px 0 0;}
+  nav{display:flex;gap:6px;margin:1.4rem 0 1.6rem;border-bottom:1px solid var(--line);}
+  nav button{flex:1;background:none;border:none;padding:10px 4px 12px;font-family:'Inter',sans-serif;
+    font-size:13.5px;font-weight:500;color:var(--ink-faint);cursor:pointer;position:relative;
+    border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;}
+  nav button.active{color:var(--ink);border-bottom-color:var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;margin-bottom:10px;}
+  .row{display:flex;align-items:center;justify-content:space-between;}
+  .habit-name{font-weight:500;font-size:15px;margin:0;}
+  .streak{font-size:12px;color:var(--ink-soft);margin:2px 0 0;display:flex;align-items:center;gap:4px;}
+  .streak.live{color:var(--warm);}
+  .del{background:none;border:none;color:var(--ink-faint);cursor:pointer;padding:6px;
+    font-size:15px;line-height:1;}
+  .week{display:flex;gap:5px;margin-top:12px;justify-content:space-between;}
+  .day-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;
+    align-items:center;gap:4px;padding:2px 0;cursor:pointer;}
+  .day-btn .dn{font-size:10.5px;color:var(--ink-faint);}
+  .day-btn .dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;border:1px solid var(--line);background:var(--bg);
+    font-size:12px;transition:all .12s;}
+  .day-btn .dot.done{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .day-btn .dot.today{border-color:var(--ink);border-width:1.5px;}
+  .add-row{display:flex;gap:8px;margin-bottom:1.1rem;}
+  .add-row input{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+    font-family:'Inter',sans-serif;font-size:14px;background:var(--surface);color:var(--ink);}
+  .add-row input:focus{outline:none;border-color:var(--accent);}
+  .add-row button{width:42px;border:1px solid var(--line);border-radius:10px;background:var(--surface);
+    color:var(--ink);font-size:18px;cursor:pointer;}
+  .err{color:var(--danger);font-size:12px;margin:-6px 0 10px 2px;}
+  select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+    font-family:'Inter',sans-serif;font-size:14px;background:var(--surface);color:var(--ink);
+    margin-bottom:1rem;}
+  .meal-label{font-weight:600;font-size:13.5px;}
+  .meal-item{display:flex;align-items:center;gap:11px;background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;font-size:13.5px;}
+  .meal-item input{width:18px;height:18px;flex-shrink:0;accent-color:var(--accent);}
+  .meal-item .txt{flex:1;line-height:1.4;color:var(--ink-soft);}
+  .meal-item .txt b{color:var(--ink);}
+  .meal-item .g{color:var(--ink-faint);font-size:11.5px;flex-shrink:0;}
+  .protein-bar{margin:14px 0 4px;}
+  .protein-bar .track{height:6px;background:var(--accent-soft);border-radius:4px;overflow:hidden;}
+  .protein-bar .fill{height:100%;background:var(--accent);border-radius:4px;transition:width .2s;}
+  .protein-bar .lab{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+  .rest{font-family:'Fraunces',serif;font-size:20px;color:var(--ink-soft);text-align:center;
+    padding:2.4rem 0;}
+  .install-tip{margin-top:2.4rem;padding-top:1.2rem;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-faint);line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Ledger</p>
+    <h1 id="greeting">Good day</h1>
+    <p class="datestr" id="datestr"></p>
+  </header>
+
+  <nav id="tabs">
+    <button data-tab="habits" class="active">Habits</button>
+    <button data-tab="diet">Diet</button>
+    <button data-tab="gym">Gym</button>
+  </nav>
+
+  <div id="panel-habits" class="panel active">
+    <div class="add-row">
+      <input type="text" id="new-habit" placeholder="Add a habit" />
+      <button id="add-habit-btn" aria-label="Add habit">+</button>
+    </div>
+    <div class="err" id="habit-err" style="display:none;">Enter a habit name first</div>
+    <div id="habit-list"></div>
+  </div>
+
+  <div id="panel-diet" class="panel">
+    <select id="diet-day"></select>
+    <div id="diet-items"></div>
+    <div class="protein-bar">
+      <div class="track"><div class="fill" id="diet-fill"></div></div>
+      <p class="lab" id="diet-lab"></p>
+    </div>
+  </div>
+
+  <div id="panel-gym" class="panel">
+    <select id="gym-day"></select>
+    <div id="gym-items"></div>
+  </div>
+
+  <p class="install-tip">On iPhone: open this page in Safari, tap Share, then "Add to Home Screen." On Android: open in Chrome, tap the menu, then "Add to Home screen." Your data stays on this device only.</p>
+</div>
+
+<script>
+const MEAL_PLAN = {
+  Monday: [['3 idli + sambar (extra dal) + curd',18],['Boiled egg (2) or roasted chana',12],['Rice + sambar + rajma curry + curd',32],['Buttermilk + roasted peanuts',10],['Dosa + paneer curry + moong dal',30]],
+  Tuesday: [['Ragi dosa + coconut chutney + curd',14],['Sprouts salad (1 cup)',9],['Rice + sambar + chana masala + curd',30],['Boiled egg or buttermilk',8],['Uttapam + egg curry + dal',28]],
+  Wednesday: [['3 idli + sambar (extra dal) + curd',18],['Roasted chana (1/2 cup)',10],['Rice + rasam + rajma + curd',30],['Buttermilk + peanuts',10],['Chapati/dosa + chicken or paneer curry + dal',35]],
+  Thursday: [['Pesarattu + chutney + curd',20],['2 boiled eggs',12],['Rice + sambar + chana + curd',30],['Sprouts chaat',9],['Dosa + fish or paneer curry + dal',30]],
+  Friday: [['3 idli + sambar (extra dal) + curd',18],['Roasted chana + buttermilk',12],['Rice + rasam + rajma/chicken curry + curd',35],['Boiled egg',6],['Uttapam + paneer/egg curry + dal',30]],
+  Saturday: [['Adai + curd',22],['Sprouts salad',9],['Rice + sambar + chana + curd',30],['Buttermilk + peanuts',10],['Dosa + chicken/paneer curry + dal',32]],
+  Sunday: [['3 idli + sambar (extra dal) + curd',18],['2 boiled eggs',12],['Rice + rajma + rasam + curd',32],['Roasted chana',10],['Dosa + fish/paneer curry + dal',30]]
+};
+const MEAL_LABELS = ['Breakfast','Mid-morning','Lunch','Evening','Dinner'];
+
+const WORKOUT_PLAN = {
+  Monday: {title:'Upper body push', ex:['Bench press — 4x8-10','Seated shoulder press — 3x10','Incline dumbbell press — 3x10-12','Lateral raises — 3x12-15','Tricep rope pushdown — 3x12-15','Cool down: 10 min incline walk']},
+  Tuesday: {title:'Lower body', ex:['Leg press — 4x10-12','Romanian deadlift — 3x10','Step-ups on low box — 3x12/leg','Hip thrusts — 3x12','Standing calf raise — 3x15','Plank — 3x45-60s']},
+  Wednesday: {title:'Upper body pull', ex:['Pull-ups or lat pulldown — 4x8-10','Barbell/dumbbell row — 3x10','Seated cable row — 3x10-12','Face pulls — 3x15','Bicep curl — 3x12','Cool down: 10 min incline walk']},
+  Thursday: {title:'Full body / conditioning', ex:['Deadlift — 4x6-8','Leg press (light) — 3x15','Push-ups — 3x max','Bent-over row — 3x10','Cardio 15-20 min (bike/rower)']},
+  Friday: {title:'Lower body + core', ex:['Goblet squat to box — 4x10','Hip thrusts — 3x12','Leg curl machine — 3x12','Hanging knee raises — 3x15','Russian twists — 3x20','Cool down: 10 min easy bike']},
+  Saturday: {title:'Rest', ex:[]},
+  Sunday: {title:'Rest', ex:[]}
+};
+
+const DEFAULT_HABITS = ['Meditate 10 min','Walk 7 km','Eat diet food','Upgrade skills','Interview prep','Read 10 pages','Drink 3 liters of water'];
+
+const todayStr = () => new Date().toISOString().slice(0,10);
+const weekdayName = d => d.toLocaleDateString('en-US',{weekday:'long'});
+const dayLabel = offset => { const d=new Date(); d.setDate(d.getDate()-offset); return d.toISOString().slice(0,10); };
+
+function getJSON(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function setJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+let habits = getJSON('ledger_habits', null);
+if(!habits){ habits = DEFAULT_HABITS.map((name,i)=>({id:Date.now().toString()+i,name,log:{}})); setJSON('ledger_habits',habits); }
+let dietLog = getJSON('ledger_diet', {});
+let gymLog = getJSON('ledger_gym', {});
+
+function saveHabits(){ setJSON('ledger_habits', habits); }
+function saveDiet(){ setJSON('ledger_diet', dietLog); }
+function saveGym(){ setJSON('ledger_gym', gymLog); }
+
+function computeStreak(h){
+  let streak=0, cursor=new Date();
+  while(true){ const key=cursor.toISOString().slice(0,10);
+    if(h.log && h.log[key]){ streak++; cursor.setDate(cursor.getDate()-1); } else break; }
+  return streak;
+}
+
+function renderHeader(){
+  const now = new Date();
+  const hour = now.getHours();
+  document.getElementById('greeting').textContent = hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+  document.getElementById('datestr').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+
+function renderHabits(){
+  const list = document.getElementById('habit-list');
+  const days = [6,5,4,3,2,1,0].map(dayLabel);
+  const dayNames = days.map(d=> new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'narrow'}));
+  list.innerHTML = '';
+  habits.forEach(h=>{
+    const streak = computeStreak(h);
+    const card = document.createElement('div'); card.className='card';
+    const top = document.createElement('div'); top.className='row'; top.style.marginBottom='2px';
+    top.innerHTML = `<div><p class="habit-name">${h.name}</p><p class="streak ${streak>0?'live':''}">${streak>0? streak+' day streak':'No streak yet'}</p></div><button class="del" data-del="${h.id}" aria-label="Delete">&#10005;</button>`;
+    card.appendChild(top);
+    const week = document.createElement('div'); week.className='week';
+    days.forEach((dateKey,i)=>{
+      const done = !!(h.log && h.log[dateKey]);
+      const isToday = dateKey === todayStr();
+      const btn = document.createElement('button'); btn.className='day-btn';
+      btn.innerHTML = `<span class="dn">${dayNames[i]}</span><span class="dot ${done?'done':''} ${isToday?'today':''}">${done?'&#10003;':''}</span>`;
+      btn.addEventListener('click', ()=>{ h.log=h.log||{}; if(h.log[dateKey]) delete h.log[dateKey]; else h.log[dateKey]=true; saveHabits(); renderHabits(); });
+      week.appendChild(btn);
+    });
+    card.appendChild(week);
+    list.appendChild(card);
+  });
+  list.querySelectorAll('[data-del]').forEach(btn=> btn.addEventListener('click', ()=>{ habits = habits.filter(h=>h.id!==btn.getAttribute('data-del')); saveHabits(); renderHabits(); }));
+}
+
+function addHabit(){
+  const input = document.getElementById('new-habit');
+  const err = document.getElementById('habit-err');
+  const name = input.value.trim();
+  if(!name){ err.style.display='block'; input.style.borderColor='var(--danger)'; return; }
+  err.style.display='none'; input.style.borderColor='';
+  habits.push({id:Date.now().toString(), name, log:{}});
+  input.value=''; saveHabits(); renderHabits();
+}
+document.getElementById('add-habit-btn').addEventListener('click', addHabit);
+document.getElementById('new-habit').addEventListener('keydown', e=>{ if(e.key==='Enter') addHabit(); });
+document.getElementById('new-habit').addEventListener('input', e=>{ e.target.style.borderColor=''; document.getElementById('habit-err').style.display='none'; });
+
+function renderDiet(){
+  const days = Object.keys(MEAL_PLAN);
+  const select = document.getElementById('diet-day');
+  const current = weekdayName(new Date());
+  select.innerHTML = days.map(d=>`<option value="${d}" ${d===current?'selected':''}>${d}</option>`).join('');
+  function draw(){
+    const day = select.value;
+    const dateKey = 'diet:'+todayStr()+':'+day;
+    const items = MEAL_PLAN[day];
+    const done = dietLog[dateKey] || {};
+    const wrap = document.getElementById('diet-items');
+    wrap.innerHTML = items.map((item,i)=>`
+      <label class="meal-item">
+        <input type="checkbox" data-idx="${i}" ${done[i]?'checked':''} />
+        <span class="txt"><b class="meal-label">${MEAL_LABELS[i]}</b><br>${item[0]}</span>
+        <span class="g">~${item[1]}g</span>
+      </label>`).join('');
+    const doneP = items.reduce((a,item,i)=> done[i]? a+item[1]:a, 0);
+    const totalP = items.reduce((a,item)=> a+item[1], 0);
+    document.getElementById('diet-fill').style.width = Math.round((doneP/totalP)*100)+'%';
+    document.getElementById('diet-lab').textContent = `Protein logged: ${doneP}g of ~${totalP}g planned`;
+    wrap.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change', ()=>{
+        dietLog[dateKey] = dietLog[dateKey] || {};
+        if(cb.checked) dietLog[dateKey][cb.getAttribute('data-idx')] = true;
+        else delete dietLog[dateKey][cb.getAttribute('data-idx')];
+        saveDiet(); draw();
+      });
+    });
+  }
+  select.addEventListener('change', draw);
+  draw();
+}
+
+function renderGym(){
+  const days = Object.keys(WORKOUT_PLAN);
+  const select = document.getElementById('gym-day');
+  const current = weekdayName(new Date());
+  select.innerHTML = days.map(d=>`<option value="${d}" ${d===current?'selected':''}>${d} — ${WORKOUT_PLAN[d].title}</option>`).join('');
+  function draw(){
+    const day = select.value;
+    const plan = WORKOUT_PLAN[day];
+    const wrap = document.getElementById('gym-items');
+    if(plan.ex.length === 0){ wrap.innerHTML = '<p class="rest">Rest day</p>'; return; }
+    const dateKey = 'gym:'+todayStr()+':'+day;
+    const done = gymLog[dateKey] || {};
+    wrap.innerHTML = plan.ex.map((exr,i)=>`
+      <label class="meal-item">
+        <input type="checkbox" data-idx="${i}" ${done[i]?'checked':''} />
+        <span class="txt">${exr}</span>
+      </label>`).join('');
+    wrap.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change', ()=>{
+        gymLog[dateKey] = gymLog[dateKey] || {};
+        if(cb.checked) gymLog[dateKey][cb.getAttribute('data-idx')] = true;
+        else delete gymLog[dateKey][cb.getAttribute('data-idx')];
+        saveGym(); draw();
+      });
+    });
+  }
+  select.addEventListener('change', draw);
+  draw();
+}
+
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.getAttribute('data-tab')).classList.add('active');
+  });
+});
+
+renderHeader();
+renderHabits();
+renderDiet();
+renderGym();
+</script>
+</body>
+</html>
